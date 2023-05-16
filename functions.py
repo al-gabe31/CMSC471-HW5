@@ -305,9 +305,12 @@ def make_mpg_scaled_wt_sp(csv_file):
 
 
     # Customize plot here
-    plt.title("Scaled WT vs MPG")
-    plt.xlabel("Scaled WT")
-    plt.ylabel("MPG")
+    plt.title("Scaled Weight vs Miles per Gallon")
+    plt.xlabel("Scaled Weight")
+    plt.ylabel("Miles per Gallon")
     
     plt.scatter(mpg, scaled_wt)
     plt.show()
+
+
+# RESUME
