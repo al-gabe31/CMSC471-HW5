@@ -5,6 +5,8 @@ import math
 from scipy import stats
 import csv
 
+DECIMAL_PLACE = 6
+
 # Settings for plot customization
 plt.style.use('fivethirtyeight') # My favorite plot theme <3
 LINE_WIDTH = 2 # How thick each lines are
@@ -86,17 +88,17 @@ def get_scaled_values(csv_file):
     }
 
     # This is where all scaled data will be stored
-    scaled_mpg = [round((data - MEANS['mpg']) / sqrt(VARIANCES['mpg']), 2) for data in mpg]
-    scaled_cyl = [round((data - MEANS['cyl']) / sqrt(VARIANCES['cyl']), 2) for data in cyl]
-    scaled_disp = [round((data - MEANS['disp']) / sqrt(VARIANCES['disp']), 2) for data in disp]
-    scaled_hp = [round((data - MEANS['hp']) / sqrt(VARIANCES['hp']), 2) for data in hp]
-    scaled_drat = [round((data - MEANS['drat']) / sqrt(VARIANCES['drat']), 2) for data in drat]
-    scaled_wt = [round((data - MEANS['wt']) / sqrt(VARIANCES['wt']), 2) for data in wt]
-    scaled_qsec = [round((data - MEANS['qsec']) / sqrt(VARIANCES['qsec']), 2) for data in qsec]
-    scaled_vs = [round((data - MEANS['vs']) / sqrt(VARIANCES['vs']), 2) for data in vs]
-    scaled_am = [round((data - MEANS['am']) / sqrt(VARIANCES['am']), 2) for data in am]
-    scaled_gear = [round((data - MEANS['gear']) / sqrt(VARIANCES['gear']), 2) for data in gear]
-    scaled_carb = [round((data - MEANS['carb']) / sqrt(VARIANCES['carb']), 2) for data in carb]
+    scaled_mpg = [round((data - MEANS['mpg']) / sqrt(VARIANCES['mpg']), DECIMAL_PLACE) for data in mpg]
+    scaled_cyl = [round((data - MEANS['cyl']) / sqrt(VARIANCES['cyl']), DECIMAL_PLACE) for data in cyl]
+    scaled_disp = [round((data - MEANS['disp']) / sqrt(VARIANCES['disp']), DECIMAL_PLACE) for data in disp]
+    scaled_hp = [round((data - MEANS['hp']) / sqrt(VARIANCES['hp']), DECIMAL_PLACE) for data in hp]
+    scaled_drat = [round((data - MEANS['drat']) / sqrt(VARIANCES['drat']), DECIMAL_PLACE) for data in drat]
+    scaled_wt = [round((data - MEANS['wt']) / sqrt(VARIANCES['wt']), DECIMAL_PLACE) for data in wt]
+    scaled_qsec = [round((data - MEANS['qsec']) / sqrt(VARIANCES['qsec']), DECIMAL_PLACE) for data in qsec]
+    scaled_vs = [round((data - MEANS['vs']) / sqrt(VARIANCES['vs']), DECIMAL_PLACE) for data in vs]
+    scaled_am = [round((data - MEANS['am']) / sqrt(VARIANCES['am']), DECIMAL_PLACE) for data in am]
+    scaled_gear = [round((data - MEANS['gear']) / sqrt(VARIANCES['gear']), DECIMAL_PLACE) for data in gear]
+    scaled_carb = [round((data - MEANS['carb']) / sqrt(VARIANCES['carb']), DECIMAL_PLACE) for data in carb]
 
     return (scaled_cyl, scaled_disp, scaled_hp, scaled_drat, scaled_wt, scaled_qsec, scaled_vs, scaled_am, scaled_gear, scaled_carb)
 
@@ -106,7 +108,7 @@ def print_scaled_values(scaled_values, headers, num_rows = 5):
     for i in range(len(headers)):
         header_str += headers[i]
 
-        while len(header_str) < (i + 1) * 10:
+        while len(header_str) < (i + 1) * 15:
             header_str += " "
     
     print(header_str)
@@ -119,7 +121,7 @@ def print_scaled_values(scaled_values, headers, num_rows = 5):
         for j in range(len(headers)):
             data_row += str(scaled_values[j][i])
 
-            while len(data_row) < (j + 1) * 10:
+            while len(data_row) < (j + 1) * 15:
                 data_row += " "
             
         print(data_row)
@@ -196,7 +198,7 @@ def report_mean_and_variance(csv_file, headers):
     for i in range(len(headers)):
         header_str += headers[i]
 
-        while len(header_str) < (i + 1) * 10 + 7:
+        while len(header_str) < (i + 1) * 15 + 7:
             header_str += " "
     
     print(header_str)
@@ -206,9 +208,9 @@ def report_mean_and_variance(csv_file, headers):
     # Report the MEANS here
     mean_str = "MEAN   "
     for i in range(len(headers)):
-        mean_str += str(round(MEANS[headers[i]], 2))
+        mean_str += str(round(MEANS[headers[i]], DECIMAL_PLACE))
 
-        while len(mean_str) < (i + 1) * 10 + 7:
+        while len(mean_str) < (i + 1) * 15 + 7:
             mean_str += " "
     print(mean_str)
 
@@ -217,8 +219,8 @@ def report_mean_and_variance(csv_file, headers):
     # Report VAR here
     var_str = "VAR    "
     for i in range(len(headers)):
-        var_str += str(round(VARIANCES[headers[i]], 2))
+        var_str += str(round(VARIANCES[headers[i]], DECIMAL_PLACE))
 
-        while len(var_str) < (i + 1) * 10 + 7:
+        while len(var_str) < (i + 1) * 15 + 7:
             var_str += " "
     print(var_str)
