@@ -230,6 +230,8 @@ def report_mean_and_variance(csv_file, headers):
     print(var_str)
 
 def make_cars_plot(csv_file):
+    num_lines = 0
+    
     # This is where all data will be stored
     mpg = []
     cyl = []
@@ -263,6 +265,7 @@ def make_cars_plot(csv_file):
                 gear.append(float(row[9]))
                 carb.append(float(row[10]))
             line_num += 1
+            num_lines += 1
     
     # Stores all the mean values for each data
     MEANS = {
@@ -346,7 +349,7 @@ def make_cars_plot(csv_file):
         for i in range(len(mpg)):
             regression_sum += pow(mpg[i] - mpg_scaled_wt_prediction(scaled_wt[i], theta_values), 2)
         
-        return regression_sum
+        return regression_sum / (2 * num_lines)
 
     # Keep updating theta_intercept and/or theta_scaled_wt until changes to both leads to less of a change in regression sum than the convergence threshold
     SAFETY = 1000
@@ -363,12 +366,12 @@ def make_cars_plot(csv_file):
 
         # Populate delta_regression
         # SUBTRACTING LEARNING RATE
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE, thetas[1]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE, thetas[1]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE]))
         
         # ADDING LEARNING RATE
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE, thetas[1]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE, thetas[1]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE]))
 
         
 
@@ -398,7 +401,7 @@ def make_cars_plot(csv_file):
         factor = -1
         index_delta_regression = delta_regression.index(max(delta_regression))
 
-        if index_delta_regression < len(delta_regression) / 2:
+        if index_delta_regression >= len(delta_regression) / 2:
             factor = 1
         
         index_delta_regression %= len(delta_regression) / 2
@@ -421,6 +424,8 @@ def make_cars_plot(csv_file):
     print(f"Sum Regression {round(get_mpg_scaled_wt_regression_sum(), 2)}")
 
 def get_mpg_multi_linear_reg(csv_file):
+    num_lines = 0
+    
     # This is where all data will be stored
     mpg = []
     cyl = []
@@ -454,6 +459,7 @@ def get_mpg_multi_linear_reg(csv_file):
                 gear.append(float(row[9]))
                 carb.append(float(row[10]))
             line_num += 1
+            num_lines += 1
     
     # Stores all the mean values for each data
     MEANS = {
@@ -504,7 +510,7 @@ def get_mpg_multi_linear_reg(csv_file):
         result = theta_values[0]
 
         for  i in range(1, len(theta_values)):
-            result += theta_values[i] * x
+            result += theta_values[i] * x[i]
         
         return result
 
@@ -513,9 +519,9 @@ def get_mpg_multi_linear_reg(csv_file):
 
         # Adds up the regression for each row
         for i in range(len(mpg)):
-            regression_sum += pow(mpg[i] - mpg_scaled_prediction(scaled_wt[i], theta_values), 2)
+            regression_sum += pow(mpg[i] - mpg_scaled_prediction([scaled_mpg[i], scaled_cyl[i], scaled_disp[i], scaled_hp[i], scaled_drat[i], scaled_wt[i], scaled_qsec[i], scaled_vs[i], scaled_am[i], scaled_gear[i], scaled_carb[i]], theta_values), 2)
         
-        return regression_sum
+        return regression_sum / (2 * num_lines)
     
     # Keep updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
     SAFETY = 1000
@@ -550,30 +556,30 @@ def get_mpg_multi_linear_reg(csv_file):
 
         # Populate delta_regression (also, yikes)
         # SUBTRACTING LEARNING RATE
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE, thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE, thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE, thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] - LEARNING_RATE, thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] - LEARNING_RATE, thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] - LEARNING_RATE, thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] - LEARNING_RATE, thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] - LEARNING_RATE, thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] - LEARNING_RATE, thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] - LEARNING_RATE, thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] - LEARNING_RATE]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE, thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE, thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE, thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] - LEARNING_RATE, thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] - LEARNING_RATE, thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] - LEARNING_RATE, thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] - LEARNING_RATE, thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] - LEARNING_RATE, thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] - LEARNING_RATE, thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] - LEARNING_RATE, thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] - LEARNING_RATE]))
         
         # ADDING LEARNING RATE
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE, thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE, thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE, thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] + LEARNING_RATE, thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] + LEARNING_RATE, thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] + LEARNING_RATE, thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] + LEARNING_RATE, thetas[7], thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] + LEARNING_RATE, thetas[8], thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] + LEARNING_RATE, thetas[9], thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] + LEARNING_RATE, thetas[10]]))
-        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] + LEARNING_RATE]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE, thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE, thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE, thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] + LEARNING_RATE, thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] + LEARNING_RATE, thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] + LEARNING_RATE, thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] + LEARNING_RATE, thetas[7], thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] + LEARNING_RATE, thetas[8], thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] + LEARNING_RATE, thetas[9], thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] + LEARNING_RATE, thetas[10]]))
+        delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] + LEARNING_RATE]))
 
         
 
@@ -603,7 +609,7 @@ def get_mpg_multi_linear_reg(csv_file):
         factor = -1
         index_delta_regression = delta_regression.index(max(delta_regression))
 
-        if index_delta_regression < len(delta_regression) / 2:
+        if index_delta_regression >= len(delta_regression) / 2:
             factor = 1
         
         index_delta_regression %= len(delta_regression) / 2
@@ -637,7 +643,7 @@ def get_mpg_multi_linear_reg(csv_file):
     print(f"Theta10 = {round(thetas[10], 2)}")
     
     print(f"The Thetas {thetas}")
-    mpg_scaled_wt_regression = list(map(mpg_scaled_prediction, scaled_wt))
-    plt.scatter(scaled_wt, mpg)
-    plt.plot(scaled_wt, mpg_scaled_wt_regression)
-    plt.show()
+    # mpg_scaled_wt_regression = list(map(mpg_scaled_prediction, scaled_wt))
+    # plt.scatter(scaled_wt, mpg)
+    # plt.plot(scaled_wt, mpg_scaled_wt_regression)
+    # plt.show()
