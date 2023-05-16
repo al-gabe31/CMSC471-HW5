@@ -5,7 +5,11 @@ import math
 from scipy import stats
 import csv
 
+# Set Global Constants Here
 DECIMAL_PLACE = 6
+RANDOM_INITIALIZATION = 0
+LEARNING_RATE = 0.2
+CONVERGENCE = pow(10, -5)
 
 # Settings for plot customization
 plt.style.use('fivethirtyeight') # My favorite plot theme <3
