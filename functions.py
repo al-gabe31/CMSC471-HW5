@@ -229,7 +229,7 @@ def report_mean_and_variance(csv_file, headers):
             var_str += " "
     print(var_str)
 
-def make_mpg_scaled_wt_sp(csv_file):
+def make_cars_plot(csv_file):
     # This is where all data will be stored
     mpg = []
     cyl = []
@@ -313,8 +313,112 @@ def make_mpg_scaled_wt_sp(csv_file):
     plt.xlabel("Scaled Weight")
     plt.ylabel("Miles per Gallon")
     
-    plt.scatter(mpg, scaled_wt)
+    # plt.scatter(mpg, scaled_wt)
+    # plt.show()
+
+
+
+    # We then plot the simple linear hypothesis here
+    # theta_intercept = RANDOM_INITIALIZATION
+    # theta_scaled_wt = RANDOM_INITIALIZATION
+
+    # theta_intercept = 18
+    # theta_scaled_wt = -5.25
+
+    # 0 --> theta_intercept
+    # 1 --> theta_scaled_wt
+    # thetas = [18, -5.25]
+    thetas = [RANDOM_INITIALIZATION for i in range(2)]
+
+    def mpg_scaled_wt_prediction(x, theta_values = thetas):
+        # return theta_values[0] + (theta_values[1] * x)
+        result = theta_values[0]
+
+        for  i in range(1, len(theta_values)):
+            result += theta_values[i] * x
+        
+        return result
+
+    def get_mpg_scaled_wt_regression_sum(theta_values = thetas):
+        regression_sum = 0
+
+        # Adds up the regression for each row
+        for i in range(len(mpg)):
+            regression_sum += pow(mpg[i] - mpg_scaled_wt_prediction(scaled_wt[i], theta_values), 2)
+        
+        return regression_sum
+
+    # Keep updating theta_intercept and/or theta_scaled_wt until changes to both leads to less of a change in regression sum than the convergence threshold
+    SAFETY = 1000
+    iteration = 0
+    while iteration < SAFETY:
+        base_regression = get_mpg_scaled_wt_regression_sum()
+        
+        # Index
+        #   0 --> theta0--
+        #   1 --> theta1--
+        #   2 --> theta0++
+        #   3 --> theta1++
+        delta_regression = []
+
+        # Populate delta_regression
+        # SUBTRACTING LEARNING RATE
+        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE, thetas[1]]))
+        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE]))
+        
+        # ADDING LEARNING RATE
+        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE, thetas[1]]))
+        delta_regression.append(get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE]))
+
+        
+
+        # We then turn any negatives into 0
+        delta_regression = [0 if num < 0 else num for num in delta_regression]
+
+
+
+        # We then check if all values in delta_regression is less than the CONVERGENCE threshold
+
+        # Checks if all delta_regression values are less than the CONVERGENEC threshold
+        def all_less(nums):
+            flag = True
+            
+            for num in nums:
+                if num > CONVERGENCE:
+                    flag = False
+            
+            return flag
+
+        # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
+        if all_less(delta_regression):
+            break
+        
+
+        # Otherwise, we take action of whichever change lead to largest change in the regression sum
+        factor = -1
+        index_delta_regression = delta_regression.index(max(delta_regression))
+
+        if index_delta_regression < len(delta_regression) / 2:
+            factor = 1
+        
+        index_delta_regression %= len(delta_regression) / 2
+
+        # Index:
+        #   0 --> theta0
+        #   1 --> theta1
+        thetas[int(index_delta_regression)] += factor * LEARNING_RATE
+
+        iteration += 1 # End of while loop
+    print(f"While loop ended at iteration {iteration}")
+    print(f"Theta0 = {round(thetas[0], 2)}")
+    print(f"Theta1 = {round(thetas[1], 2)}")
+
+    # Once we get the proper theta values, we just plot it on the graph
+    mpg_scaled_wt_regression = list(map(mpg_scaled_wt_prediction, scaled_wt))
+    plt.scatter(scaled_wt, mpg)
+    plt.plot(scaled_wt, mpg_scaled_wt_regression)
     plt.show()
+    print(f"Sum Regression {round(get_mpg_scaled_wt_regression_sum(), 2)}")
 
 
 # RESUME
