@@ -88,7 +88,7 @@ def get_scaled_values(csv_file):
         'vs': var(vs),
         'am': var(am),
         'gear': var(gear),
-        'carb': mean(carb)
+        'carb': var(carb)
     }
 
     # This is where all scaled data will be stored
@@ -130,71 +130,33 @@ def print_scaled_values(scaled_values, headers, num_rows = 5):
             
         print(data_row)
 
-def report_mean_and_variance(csv_file, headers):
-    # This is where all data will be stored
-    mpg = []
-    cyl = []
-    disp = []
-    hp = []
-    drat = []
-    wt = []
-    qsec = []
-    vs = []
-    am = []
-    gear = []
-    carb = []
-
-    # Read all data from the CSV file
-    with open(csv_file, newline='') as csvfile:
-        line = csv.reader(csvfile, delimiter=',')
-
-        line_num = 0
-        for row in line:
-            if line_num > 0: # We ignore the first line since that's just the header
-                # Takes all values from the csv and puts them into their respective array
-                mpg.append(float(row[0]))
-                cyl.append(float(row[1]))
-                disp.append(float(row[2]))
-                hp.append(float(row[3]))
-                drat.append(float(row[4]))
-                wt.append(float(row[5]))
-                qsec.append(float(row[6]))
-                vs.append(float(row[7]))
-                am.append(float(row[8]))
-                gear.append(float(row[9]))
-                carb.append(float(row[10]))
-            line_num += 1
-    
+def report_scaled_mean_and_variance(scaled_values, headers, num_rows = 5):
     # Stores all the mean values for each data
     MEANS = {
-        'mpg': mean(mpg),
-        'cyl': mean(cyl),
-        'disp': mean(disp),
-        'hp': mean(hp),
-        'drat': mean(drat),
-        'wt': mean(wt),
-        'qsec': mean(qsec),
-        'vs': mean(vs),
-        'am': mean(am),
-        'gear': mean(gear),
-        'carb': mean(carb)
+        'cyl': mean(scaled_values[0]),
+        'disp': mean(scaled_values[1]),
+        'hp': mean(scaled_values[2]),
+        'drat': mean(scaled_values[3]),
+        'wt': mean(scaled_values[4]),
+        'qsec': mean(scaled_values[5]),
+        'vs': mean(scaled_values[6]),
+        'am': mean(scaled_values[7]),
+        'gear': mean(scaled_values[8]),
+        'carb': mean(scaled_values[9])
     }
 
     VARIANCES = {
-        'mpg': var(mpg),
-        'cyl': var(cyl),
-        'disp': var(disp),
-        'hp': var(hp),
-        'drat': var(drat),
-        'wt': var(wt),
-        'qsec': var(qsec),
-        'vs': var(vs),
-        'am': var(am),
-        'gear': var(gear),
-        'carb': mean(carb)
+        'cyl': var(scaled_values[0]),
+        'disp': var(scaled_values[1]),
+        'hp': var(scaled_values[2]),
+        'drat': var(scaled_values[3]),
+        'wt': var(scaled_values[4]),
+        'qsec': var(scaled_values[5]),
+        'vs': var(scaled_values[6]),
+        'am': var(scaled_values[7]),
+        'gear': var(scaled_values[8]),
+        'carb': var(scaled_values[9])
     }
-
-    
 
     # We then print the table
     # First, print the header
@@ -206,9 +168,7 @@ def report_mean_and_variance(csv_file, headers):
             header_str += " "
     
     print(header_str)
-    
 
-    
     # Report the MEANS here
     mean_str = "MEAN   "
     for i in range(len(headers)):
@@ -219,7 +179,7 @@ def report_mean_and_variance(csv_file, headers):
     print(mean_str)
 
 
-
+    
     # Report VAR here
     var_str = "VAR    "
     for i in range(len(headers)):
@@ -293,7 +253,7 @@ def make_cars_plot(csv_file):
         'vs': var(vs),
         'am': var(am),
         'gear': var(gear),
-        'carb': mean(carb)
+        'carb': var(carb)
     }
 
     # This is where all scaled data will be stored
@@ -487,7 +447,7 @@ def get_mpg_multi_linear_reg(csv_file):
         'vs': var(vs),
         'am': var(am),
         'gear': var(gear),
-        'carb': mean(carb)
+        'carb': var(carb)
     }
 
     # This is where all scaled data will be stored
@@ -524,7 +484,7 @@ def get_mpg_multi_linear_reg(csv_file):
         return regression_sum / (2 * num_lines)
     
     # Keep updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
-    SAFETY = 1000
+    SAFETY = 10000
     iteration = 0
     while iteration < SAFETY:
         base_regression = get_mpg_scaled_wt_regression_sum()
@@ -647,3 +607,8 @@ def get_mpg_multi_linear_reg(csv_file):
     # plt.scatter(scaled_wt, mpg)
     # plt.plot(scaled_wt, mpg_scaled_wt_regression)
     # plt.show()
+
+# RESUME
+
+
+# END OF FILE
