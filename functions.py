@@ -379,7 +379,7 @@ def make_cars_plot(csv_file):
     # Once we get the proper theta values, we just plot it on the graph
     mpg_scaled_wt_regression = list(map(mpg_scaled_wt_prediction, scaled_wt))
     plt.scatter(scaled_wt, mpg)
-    plt.plot(scaled_wt, mpg_scaled_wt_regression)
+    plt.plot(scaled_wt, mpg_scaled_wt_regression, color='red')
     plt.show()
     print(f"Sum Regression {round(get_mpg_scaled_wt_regression_sum(), 2)}")
 
@@ -608,7 +608,9 @@ def get_mpg_multi_linear_reg(csv_file):
     # plt.plot(scaled_wt, mpg_scaled_wt_regression)
     # plt.show()
 
-# RESUME
+# Reports the theta values for cancer data
+def get_cancer_thetas(csv_file = 'cancer.csv'):
+    pass
 
 
 # END OF FILE
