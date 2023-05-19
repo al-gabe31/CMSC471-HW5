@@ -469,7 +469,7 @@ def get_mpg_multi_linear_reg(csv_file):
         # return theta_values[0] + (theta_values[1] * x)
         result = theta_values[0]
 
-        for  i in range(1, len(theta_values)):
+        for i in range(1, len(theta_values)):
             result += theta_values[i] * x[i]
         
         return result
@@ -550,7 +550,7 @@ def get_mpg_multi_linear_reg(csv_file):
 
         # We then check if all values in delta_regression is less than the CONVERGENCE threshold
 
-        # Checks if all delta_regression values are less than the CONVERGENEC threshold
+        # Checks if all delta_regression values are less than the CONVERGENCE threshold
         def all_less(nums):
             flag = True
             
@@ -610,7 +610,199 @@ def get_mpg_multi_linear_reg(csv_file):
 
 # Reports the theta values for cancer data
 def get_cancer_thetas(csv_file = 'cancer.csv'):
-    pass
+    num_lines = 0
+
+    # This is where all data will be stored
+    lung_cancer = [] # Dependent Variable
+    smoking = [] # Independent Variable
+
+    # Read all data from the CSV file
+    with open(csv_file, newline='') as csvfile:
+        line = csv.reader(csvfile, delimiter=',')
+
+        line_num = 0
+        for row in line:
+            if line_num > 0: # We ignore the first line since that's just the header
+                # Take all values from the csv and puts them into their respective array
+                lung_cancer.append(int(row[0]))
+                smoking.append(int(row[1]))
+            line_num += 1
+            num_lines += 1
+        
+    thetas = [RANDOM_INITIALIZATION for i in range(2)]
+
+    def lung_cancer_prediction(x, theta_values = thetas):
+        result = theta_values[0]
+
+        for i in range(1, len(theta_values)):
+            result += theta_values[i] * x[i]
+        
+        return 1 / (1 + pow(math.e, -1 * result)) # We need the logistic regression form instead
+    
+    def get_regression_sum(theta_values = thetas):
+        regression_sum = 0
+
+        # Adds up the regression for each row
+        for i in range(len(lung_cancer)):
+            regression_sum += pow(lung_cancer[i] - lung_cancer_prediction([lung_cancer[i], smoking[i]], theta_values), 2)
+        
+        return regression_sum / (2 * num_lines)
+
+    # Keep Updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
+    SAFETY = 10000
+    iteration = 0
+    while iteration < SAFETY:
+        base_regression = get_regression_sum()
+
+        # Index
+        #   0 --> theta0--
+        #   1 --> theta1--
+        #   2 --> theta0++
+        #   3 --> theta1++
+        delta_regression = []
+
+        # Populate delta_regression
+        # SUBTRACTING LEARNING RATE
+        delta_regression.append(base_regression - get_regression_sum([thetas[0] - LEARNING_RATE, thetas[1]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1] - LEARNING_RATE]))
+
+        # ADDING LEARNING RATE
+        delta_regression.append(base_regression - get_regression_sum([thetas[0] + LEARNING_RATE, thetas[1]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1] + LEARNING_RATE]))
+
+
+
+        # We then turn any negatives into 0
+        delta_regression = [0 if num < 0 else num for num in delta_regression]
+
+
+
+        # We then check if all values in delta_regression is less than the CONVERGENCE threshold
+
+        # Checks if all_delta_regression values are less than the CONVERGENCE threshold
+        def all_less(nums):
+            flag = True
+
+            for num in nums:
+                if num > CONVERGENCE:
+                    flag = False
+            
+            return flag
+        
+        # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
+        if all_less(delta_regression):
+            break
+
+        # Otherwise, we take action of whichever change lead to largest change in the regression sum
+        factor = -1
+        index_delta_regression = delta_regression.index(max(delta_regression))
+
+        if index_delta_regression >= len(delta_regression) / 2:
+            factor = 1
+        
+        index_delta_regression %= len(delta_regression) / 2
+
+        # Index:
+        #   0 --> theta0
+        #   1 --> theta1
+        thetas[int(index_delta_regression)] += factor * LEARNING_RATE
+        
+        iteration += 1 # End of while loop
+    print(f"While loop ended at iteration {iteration}")
+    print(f"Theta0 = {round(thetas[0], 2)}")
+    print(f"Theta1 = {round(thetas[1], 2)}")
+
+    print(f"The Thetas {thetas}")
+    print("\n")
+
+    # Print the confusion matrix and accuracy here
+    # Correct Predictions
+    oc_pc = 0 # Observed Cancer / Predicted Cancer
+    onc_pnc = 0 # Observed No Cancer / Predicted No Cancer
+
+    # Incorrect Predictions
+    oc_pnc = 0 # Observed Cancer / Predicted No Cancer
+    onc_pc = 0 # Observed No Cancer / Predicted Cancer
+
+    num_entries = 0
+    num_correct = 0
+
+    num_pc = 0 # Number of times it Predicted Cancer
+    num_pc_correct = 0 # Number of times it correctly Predicted Cancer
+
+    num_pnc = 0 # Number of times it Predicted No Cancer
+    num_pnc_correct = 0 # Number of times it correctly Predicted No Cancer
+
+    # Gets prediction from a logistic probability curve
+    def collapse(x):
+        result = thetas[0]
+
+        for i in range(1, len(thetas)):
+            result += thetas[i] * x
+        
+        result = 1 / (1 + pow(math.e, -1 * result))
+
+
+        if 0 <= result and result < 0.5:
+            return 0 # Predicts No Cancer
+        elif 0.5 <= result and result <= 1:
+            return 1 # Predicts Cancer
+        return -1 # Invalid input
+    
+    for i in range(len(lung_cancer)):
+        predicted = smoking[i]
+        observed = lung_cancer[i]
+        
+        # Needed to get confusion matrix
+        if observed == 1 and predicted == 1: # Observed Cancer / Predicted Cancer
+            oc_pc += 1
+        elif observed == 0 and predicted == 0: # Observed No Cancer / Predicted No Cancer
+            onc_pnc += 1
+        elif observed == 1 and predicted == 0: # Observed Cancer / Predicted No Cancer
+            oc_pnc += 1
+        elif observed == 0 and predicted == 1: # Observed No Cancer / Predicted Cancer
+            onc_pc += 1
+        
+        # Needed to calculate overall accuracy
+        if predicted == observed:
+            num_correct += 1
+
+        # Needed to calculate category-wise percentages
+        # Predicted Cancer
+        if predicted == 1: # Predicted Cancer
+            num_pc += 1
+            if observed == 1: # Observed Cancer
+                num_pc_correct += 1
+        elif predicted == 0: # Predicted No Cancer
+            num_pnc += 1
+            if observed == 0: # Observed No Cancer
+                num_pnc_correct += 1
+
+        num_entries += 1
+    
+    # Print Confusion Matrix Here
+    print(f"{' ' * 30}Predicted")
+    print(f"{' ' * 25}Cancer{' ' * 5}No Cancer")
+
+    first = "Observed" + (' ' * 5) + "Cancer" + (' ' * 6) + str(oc_pc)
+    second = (' ' * 13) + "No Cancer" + (' ' * 3) + str(onc_pc)
+
+    while len(first) < 36:
+        first += ' '
+    while len(second) < 36:
+        second += ' '
+    
+    first += str(oc_pnc)
+    second += str(onc_pnc)
+    
+    print(first)
+    print(second)
+    print("")
+    
+    # Print Accuracies Here
+    print(f"Overall Accuracy = {round((num_correct / num_entries) * 100, 2)}%")
+    print(f"Correctly Predicted Cancer {round((num_pc_correct / num_pc) * 100, 2)}% of the time")
+    print(f"Correctly No Predicted Cancer {round((num_pnc_correct / num_pnc) * 100, 2)}% of the time")
 
 
 # END OF FILE
