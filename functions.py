@@ -648,7 +648,7 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
         
         return regression_sum / (2 * num_lines)
 
-    # Keep Updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
+    # Keep updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
     SAFETY = 10000
     iteration = 0
     while iteration < SAFETY:
@@ -679,7 +679,7 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
 
         # We then check if all values in delta_regression is less than the CONVERGENCE threshold
 
-        # Checks if all_delta_regression values are less than the CONVERGENCE threshold
+        # Checks if all delta_regression values are less than the CONVERGENCE threshold
         def all_less(nums):
             flag = True
 
@@ -803,6 +803,121 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
     print(f"Overall Accuracy = {round((num_correct / num_entries) * 100, 2)}%")
     print(f"Correctly Predicted Cancer {round((num_pc_correct / num_pc) * 100, 2)}% of the time")
     print(f"Correctly No Predicted Cancer {round((num_pnc_correct / num_pnc) * 100, 2)}% of the time")
+
+# Runs everything for question 4
+def question4(csv_file = 'emails.csv'):
+    num_lines = 0
+
+    # This is where all data will be stored
+    spam_flag = [] # Dependent Variable
+    subject_length = [] # Independent Variable
+    suspicious_word_count = [] # Independent Variable
+
+    # Read all data from the CSV file
+    with open(csv_file, newline='') as csvfile:
+        line = csv.reader(csvfile, delimiter=',')
+
+        line_num = 0
+        for row in line:
+            if line_num > 0: # We ignore the first line since that's just the header
+                # Take all values from the csv and puts them into their respective array
+                spam_flag.append(int(row[0]))
+                subject_length.append(int(row[1]))
+                suspicious_word_count.append(int(row[2]))
+            line_num += 1
+            num_lines += 1
+        
+    thetas = [RANDOM_INITIALIZATION for i in range(3)]
+
+    def spam_flag_prediction(x, theta_values = thetas):
+        result = theta_values[0]
+
+        for i in range(1, len(theta_values)):
+            result += theta_values[i] * x[i]
+        
+        return 1 / (1 + pow(math.e, -1 * result)) # We need the logistic regression form instead
+    
+    def get_regression_sum(theta_values = thetas):
+        regression_sum = 0
+
+        # Adds up the regression for each row
+        for i in range(len(spam_flag)):
+            regression_sum += pow(spam_flag[i] - spam_flag_prediction([spam_flag[i], subject_length[i], suspicious_word_count[i]], theta_values), 2)
+        
+        return regression_sum / (2 * num_lines)
+    
+    # Keep updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
+    SAFETY = 10000
+    iteration = 0
+    while iteration < SAFETY:
+        base_regression = get_regression_sum()
+
+        # Index
+        #   0 --> theta0--
+        #   1 --> theta1--
+        #   2 --> theta2--
+        #   3 --> theta0++
+        #   4 --> theta1++
+        #   5 --> theta2++
+        delta_regression = []
+
+        # Populate delta_regression
+        #SUBTRACTING LEARNING RATE
+        delta_regression.append(base_regression - get_regression_sum([thetas[0] - LEARNING_RATE, thetas[1], thetas[2]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1] - LEARNING_RATE, thetas[2]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE]))
+
+        # ADDING LEARNING RATE
+        delta_regression.append(base_regression - get_regression_sum([thetas[0] + LEARNING_RATE, thetas[1], thetas[2]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1] + LEARNING_RATE, thetas[2]]))
+        delta_regression.append(base_regression - get_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE]))
+
+
+
+        # We then turn any negatives into 0
+        delta_regression = [0 if num < 0 else num for num in delta_regression]
+
+
+
+        # We then check if all values in delta_regression is less than the CONVERGENCE threshold
+
+        # Checks if all delta_regression values are less than the CONVERGENCE threshold
+        def all_less(nums):
+            flag = True
+
+            for num in nums:
+                if num > CONVERGENCE:
+                    flag = False
+            
+            return flag
+        
+        # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
+        if all_less(delta_regression):
+            break
+
+        # Otherwise, we take action of whichever change lead to largest change in the regression sum
+        factor = -1
+        index_delta_regression = delta_regression.index(max(delta_regression))
+
+        if index_delta_regression >= len(delta_regression) / 2:
+            factor = 1
+        
+        index_delta_regression %= len(delta_regression) / 2
+
+        # Index:
+        #   0 --> theta0
+        #   1 --> theta1
+        #   2 --> theta2
+        thetas[int(index_delta_regression)] += factor * LEARNING_RATE
+
+        iteration += 1 # End of while loop
+    print(f"While loop ended at iteration {iteration}")
+    print(f"Theta0 = {round(thetas[0], 2)}")
+    print(f"Theta1 = {round(thetas[1], 2)}")
+    print(f"Theta2 = {round(thetas[2], 2)}")
+
+    print(f"The Thetas {thetas}")
+    print("\n")
 
 
 # END OF FILE
