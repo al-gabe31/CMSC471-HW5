@@ -743,11 +743,28 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
         result = 1 / (1 + pow(math.e, -1 * result))
 
 
-        if 0 <= result and result < 0.5:
-            return 0 # Predicts No Cancer
-        elif 0.5 <= result and result <= 1:
-            return 1 # Predicts Cancer
-        return -1 # Invalid input
+        return result
+
+        # if 0 <= result and result < 0.5:
+        #     return 0 # Predicts No Cancer
+        # elif 0.5 <= result and result <= 1:
+        #     return 1 # Predicts Cancer
+        # return -1 # Invalid input
+    
+    # Classify Individuals Here
+    print("Classifying Individuals:")
+
+    for i in range(len(smoking)):
+        line = "Patient " + str(i + 1) + ": Smoking = " + str(smoking[i]) + " --> " + str(p := round(collapse(smoking[i]) * 100, 2)) + "% has cancer --> "
+
+        if p < 50: # Decides it (probably) doesn't have cancer
+            line += "Doesn't have cancer"
+        else:
+            line += "Has cancer"
+        
+        print(line)
+    
+    print("\n")
     
     for i in range(len(lung_cancer)):
         predicted = smoking[i]
