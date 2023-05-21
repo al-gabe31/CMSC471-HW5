@@ -275,18 +275,6 @@ def make_cars_plot(csv_file):
     plt.title("Scaled Weight vs Miles per Gallon")
     plt.xlabel("Scaled Weight")
     plt.ylabel("Miles per Gallon")
-    
-    # plt.scatter(mpg, scaled_wt)
-    # plt.show()
-
-
-
-    # We then plot the simple linear hypothesis here
-    # theta_intercept = RANDOM_INITIALIZATION
-    # theta_scaled_wt = RANDOM_INITIALIZATION
-
-    # theta_intercept = 18
-    # theta_scaled_wt = -5.25
 
     # 0 --> theta_intercept
     # 1 --> theta_scaled_wt
@@ -306,7 +294,6 @@ def make_cars_plot(csv_file):
 
         # Adds up the regression for each row
         for i in range(len(mpg)):
-            # regression_sum += pow(mpg[i] - mpg_scaled_wt_prediction(scaled_wt[i], theta_values), 2)
             regression_sum += pow(mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i], 2)
         
         return regression_sum / (2 * num_lines)
@@ -316,7 +303,6 @@ def make_cars_plot(csv_file):
 
         # Adds up the regression for each row
         for i in range(len(mpg)):
-            # regression_sum += mpg[i] - mpg_scaled_wt_prediction(scaled_wt[i], theta_values)
             regression_sum += mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i]
         
         return regression_sum / num_lines
@@ -328,11 +314,6 @@ def make_cars_plot(csv_file):
         base_regression = get_mpg_scaled_wt_regression_sum()
         
         new_thetas = []
-        # new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative())
-
-        # new_thetas.append(max(base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE * cost_derivative()]), base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE * cost_derivative()])))
-        # new_thetas.append(max(base_regression - get_mpg_scaled_wt_regression_sum([thetas[1] - LEARNING_RATE * cost_derivative()]), base_regression - get_mpg_scaled_wt_regression_sum([thetas[1] + LEARNING_RATE * cost_derivative()])))
 
         if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE * cost_derivative(), thetas[1]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE * cost_derivative(), thetas[1]]):
             new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
@@ -350,10 +331,6 @@ def make_cars_plot(csv_file):
             stuff = thetas.copy()
             stuff[i] = new_thetas[i]
             delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum(stuff))
-        # We then turn any negatives into 0
-        # delta_regression = [0 if num < 0 else num for num in delta_regression]
-        
-        # print(f"delta_regression = {delta_regression}")
 
         # We then check if all values in delta_regression is less than the CONVERGENCE threshold
 
@@ -369,26 +346,22 @@ def make_cars_plot(csv_file):
 
         # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
         if all_less(delta_regression):
-            print("BREAKPOINT REACHED")
             break
 
         # Otherwise, we take action of whichever change lead to largest change in the regression sum
         index_delta_regression = delta_regression.index(max(delta_regression))
         thetas[index_delta_regression] = new_thetas[index_delta_regression]
-        # print(f"Changing theta{index_delta_regression}")
 
         iteration += 1 # End of while loop
-    print(f"Stopped at iteration {iteration}")
     print(f"Final Thetas = {thetas}")
+    print(f"Theta0 = {thetas[0]}")
+    print(f"Theta1 = {thetas[1]}")
     
     # Once we get the proper theta values, we just plot it on the graph
-    mpg_scaled_wt_regression = list(map(mpg_scaled_wt_prediction, scaled_wt))
     plt.scatter(scaled_wt, mpg)
     regression_line = [mpg_scaled_wt_prediction(x) for x in scaled_wt]
     plt.plot(scaled_wt, regression_line, color='red')
-    # plt.plot(scaled_wt, mpg_scaled_wt_prediction, color='red')
     plt.show()
-    print(f"Sum Regression {round(get_mpg_scaled_wt_regression_sum(), 2)}")
 
 
 def get_mpg_multi_linear_reg(csv_file):
@@ -504,21 +477,8 @@ def get_mpg_multi_linear_reg(csv_file):
     iteration = 0
     while iteration < SAFETY:
         base_regression = get_mpg_scaled_wt_regression_sum()
-        # print(f"Base Regression = {base_regression}")
 
         new_thetas = []
-        # new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[2] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[3] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[4] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[5] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[6] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[7] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[8] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[9] + LEARNING_RATE * cost_derivative())
-        # new_thetas.append(thetas[10] + LEARNING_RATE * cost_derivative())
-        # print(f"New Thetas = {new_thetas}")
 
         if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] - LEARNING_RATE * cost_derivative(), thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0] + LEARNING_RATE * cost_derivative(), thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
             new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
@@ -571,7 +531,6 @@ def get_mpg_multi_linear_reg(csv_file):
             stuff = thetas.copy()
             stuff[i] = new_thetas[i]
             delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum(stuff))
-        # print(f"Delta Regression = {delta_regression}")
         
         # Checks if all delta_regression values are less than the CONVERGENCE threshold
         def all_less(nums):
@@ -585,7 +544,6 @@ def get_mpg_multi_linear_reg(csv_file):
 
         # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
         if all_less(delta_regression):
-            print("BREAKPOINT REACHED")
             break
 
         # Otherwise, we take action of whichever change lead to largest change in the regression sum
@@ -593,7 +551,6 @@ def get_mpg_multi_linear_reg(csv_file):
         thetas[index_delta_regression] = new_thetas[index_delta_regression]
         
         iteration += 1 # End of while loop
-    print(f"Stopped at iteration {iteration}")
     print(f"Final Thetas = {thetas}")
     print(f"Theta0 = {round(thetas[0], 2)}")
     print(f"Theta1 = {round(thetas[1], 2)}")
