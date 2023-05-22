@@ -296,16 +296,19 @@ def make_cars_plot(csv_file):
         for i in range(len(mpg)):
             regression_sum += pow(mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i], 2)
         
-        return regression_sum / (2 * num_lines)
+        return regression_sum / (2 * (num_lines - 0))
     
-    def cost_derivative(theta_values = thetas):
+    def cost_derivative(theta_values = thetas, index = 0):
         regression_sum = 0
 
         # Adds up the regression for each row
         for i in range(len(mpg)):
-            regression_sum += mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i]
+            if index == 0:
+                regression_sum += mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i]
+            else:
+                regression_sum += (mpg_scaled_wt_prediction(scaled_wt[i], theta_values) - mpg[i]) * scaled_wt[i]
         
-        return regression_sum / num_lines
+        return regression_sum / (num_lines - 0)
     
     # Keep updating thetas until the change in all delta_regression is negligable
     SAFETY = 500
@@ -319,10 +322,10 @@ def make_cars_plot(csv_file):
             new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
         else:
             new_thetas.append(thetas[0] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE * cost_derivative()]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE * cost_derivative()]):
-            new_thetas.append(thetas[1] - LEARNING_RATE * cost_derivative())
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE * cost_derivative(index=1)]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE * cost_derivative(index=1)]):
+            new_thetas.append(thetas[1] - LEARNING_RATE * cost_derivative(index=1))
         else:
-            new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative(index=1))
 
         delta_regression = []
 
@@ -333,20 +336,6 @@ def make_cars_plot(csv_file):
             delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum(stuff))
 
         # We then check if all values in delta_regression is less than the CONVERGENCE threshold
-
-        # Checks if all delta_regression values are less than the CONVERGENCE threshold
-        def all_less(nums):
-            flag = True
-
-            for num in nums:
-                if num > CONVERGENCE:
-                    flag = False
-            
-            return flag
-
-        # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
-        if all_less(delta_regression):
-            break
 
         # Otherwise, we take action of whichever change lead to largest change in the regression sum
         index_delta_regression = delta_regression.index(max(delta_regression))
@@ -461,16 +450,52 @@ def get_mpg_multi_linear_reg(csv_file):
         for i in range(len(mpg)):
             regression_sum += pow(mpg_scaled_wt_prediction([scaled_mpg[i], scaled_cyl[i], scaled_disp[i], scaled_hp[i], scaled_drat[i], scaled_wt[i], scaled_qsec[i], scaled_vs[i], scaled_am[i], scaled_gear[i], scaled_carb[i]], theta_values) - mpg[i], 2)
         
-        return regression_sum / (2 * num_lines)
+        return regression_sum / (2 * (num_lines - 0))
     
-    def cost_derivative(theta_values = thetas):
+    def cost_derivative(theta_values = thetas, index = 0):
         regression_sum = 0
 
         # Adds up the regression for each row
         for i in range(len(mpg)):
-            regression_sum += mpg_scaled_wt_prediction([scaled_mpg[i], scaled_cyl[i], scaled_disp[i], scaled_hp[i], scaled_drat[i], scaled_wt[i], scaled_qsec[i], scaled_vs[i], scaled_am[i], scaled_gear[i], scaled_carb[i]], theta_values) - mpg[i]
+            if index == 0:
+                regression_sum += mpg_scaled_wt_prediction([scaled_mpg[i], scaled_cyl[i], scaled_disp[i], scaled_hp[i], scaled_drat[i], scaled_wt[i], scaled_qsec[i], scaled_vs[i], scaled_am[i], scaled_gear[i], scaled_carb[i]], theta_values) - mpg[i]
+            else:
+                # 1 --> scaled_cyl
+                # 2 --> scaled_disp
+                # 3 --> scaled_hp
+                # 4 --> scaled_drat
+                # 5 --> scaled_wt
+                # 6 --> scaled_qsec
+                # 7 --> scaled_vs
+                # 8 --> scaled_am
+                # 9 --> scaled_gear
+                # 10 --> scaled_carb
+                sample = []
+
+                if index == 1:
+                    sample = scaled_cyl
+                elif index == 2:
+                    sample = scaled_disp
+                elif index == 3:
+                    sample = scaled_hp
+                elif index == 4:
+                    sample = scaled_drat
+                elif index == 5:
+                    sample = scaled_wt
+                elif index == 6:
+                    sample = scaled_qsec
+                elif index == 7:
+                    sample = scaled_vs
+                elif index == 8:
+                    sample = scaled_am
+                elif index == 9:
+                    sample = scaled_gear
+                elif index == 10:
+                    sample = scaled_carb
+                
+                regression_sum += (mpg_scaled_wt_prediction([scaled_mpg[i], scaled_cyl[i], scaled_disp[i], scaled_hp[i], scaled_drat[i], scaled_wt[i], scaled_qsec[i], scaled_vs[i], scaled_am[i], scaled_gear[i], scaled_carb[i]], theta_values) - mpg[i]) * sample[i]
         
-        return regression_sum / num_lines
+        return regression_sum / (num_lines - 0)
     
     # Keep updating thetas until the change in all delta_regression is negligable
     SAFETY = 10000
@@ -484,46 +509,46 @@ def get_mpg_multi_linear_reg(csv_file):
             new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
         else:
             new_thetas.append(thetas[0] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE * cost_derivative(), thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE * cost_derivative(), thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[1] - LEARNING_RATE * cost_derivative())
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] - LEARNING_RATE * cost_derivative(index=1), thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1] + LEARNING_RATE * cost_derivative(index=1), thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[1] - LEARNING_RATE * cost_derivative(index=1))
         else:
-            new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE * cost_derivative(), thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE * cost_derivative(), thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[2] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative(index=1))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE * cost_derivative(index=2), thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE * cost_derivative(index=2), thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[2] - LEARNING_RATE * cost_derivative(index=2))
         else:
-            new_thetas.append(thetas[2] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] - LEARNING_RATE * cost_derivative(), thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] + LEARNING_RATE * cost_derivative(), thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[3] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[2] + LEARNING_RATE * cost_derivative(index=2))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] - LEARNING_RATE * cost_derivative(index=3), thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3] + LEARNING_RATE * cost_derivative(index=3), thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[3] - LEARNING_RATE * cost_derivative(index=3))
         else:
-            new_thetas.append(thetas[3] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] - LEARNING_RATE * cost_derivative(), thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] + LEARNING_RATE * cost_derivative(), thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[4] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[3] + LEARNING_RATE * cost_derivative(index=3))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] - LEARNING_RATE * cost_derivative(index=4), thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4] + LEARNING_RATE * cost_derivative(index=4), thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[4] - LEARNING_RATE * cost_derivative(index=4))
         else:
-            new_thetas.append(thetas[4] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] - LEARNING_RATE * cost_derivative(), thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] + LEARNING_RATE * cost_derivative(), thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[5] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[4] + LEARNING_RATE * cost_derivative(index=4))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] - LEARNING_RATE * cost_derivative(index=5), thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5] + LEARNING_RATE * cost_derivative(index=5), thetas[6], thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[5] - LEARNING_RATE * cost_derivative(index=5))
         else:
-            new_thetas.append(thetas[5] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] - LEARNING_RATE * cost_derivative(), thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] + LEARNING_RATE * cost_derivative(), thetas[7], thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[6] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[5] + LEARNING_RATE * cost_derivative(index=5))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] - LEARNING_RATE * cost_derivative(index=6), thetas[7], thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6] + LEARNING_RATE * cost_derivative(index=6), thetas[7], thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[6] - LEARNING_RATE * cost_derivative(index=6))
         else:
-            new_thetas.append(thetas[6] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] - LEARNING_RATE * cost_derivative(), thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] + LEARNING_RATE * cost_derivative(), thetas[8], thetas[9], thetas[10]]):
-            new_thetas.append(thetas[7] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[6] + LEARNING_RATE * cost_derivative(index=6))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] - LEARNING_RATE * cost_derivative(index=7), thetas[8], thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7] + LEARNING_RATE * cost_derivative(index=7), thetas[8], thetas[9], thetas[10]]):
+            new_thetas.append(thetas[7] - LEARNING_RATE * cost_derivative(index=7))
         else:
-            new_thetas.append(thetas[7] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] - LEARNING_RATE * cost_derivative(), thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] + LEARNING_RATE * cost_derivative(), thetas[9], thetas[10]]):
-            new_thetas.append(thetas[8] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[7] + LEARNING_RATE * cost_derivative(index=7))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] - LEARNING_RATE * cost_derivative(index=8), thetas[9], thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8] + LEARNING_RATE * cost_derivative(index=8), thetas[9], thetas[10]]):
+            new_thetas.append(thetas[8] - LEARNING_RATE * cost_derivative(index=8))
         else:
-            new_thetas.append(thetas[8] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] - LEARNING_RATE * cost_derivative(), thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] + LEARNING_RATE * cost_derivative(), thetas[10]]):
-            new_thetas.append(thetas[9] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[8] + LEARNING_RATE * cost_derivative(index=8))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] - LEARNING_RATE * cost_derivative(index=9), thetas[10]]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9] + LEARNING_RATE * cost_derivative(index=9), thetas[10]]):
+            new_thetas.append(thetas[9] - LEARNING_RATE * cost_derivative(index=9))
         else:
-            new_thetas.append(thetas[9] + LEARNING_RATE * cost_derivative())
-        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] - LEARNING_RATE * cost_derivative()]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] + LEARNING_RATE * cost_derivative()]):
-            new_thetas.append(thetas[10] - LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[9] + LEARNING_RATE * cost_derivative(index=9))
+        if base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] - LEARNING_RATE * cost_derivative(index=10)]) > base_regression - get_mpg_scaled_wt_regression_sum([thetas[0], thetas[1], thetas[2], thetas[3], thetas[4], thetas[5], thetas[6], thetas[7], thetas[8], thetas[9], thetas[10] + LEARNING_RATE * cost_derivative(index=10)]):
+            new_thetas.append(thetas[10] - LEARNING_RATE * cost_derivative(index=10))
         else:
-            new_thetas.append(thetas[10] + LEARNING_RATE * cost_derivative())
+            new_thetas.append(thetas[10] + LEARNING_RATE * cost_derivative(index=10))
 
         delta_regression = []
         # Populates delta_regression
@@ -531,20 +556,6 @@ def get_mpg_multi_linear_reg(csv_file):
             stuff = thetas.copy()
             stuff[i] = new_thetas[i]
             delta_regression.append(base_regression - get_mpg_scaled_wt_regression_sum(stuff))
-        
-        # Checks if all delta_regression values are less than the CONVERGENCE threshold
-        def all_less(nums):
-            flag = True
-
-            for num in nums:
-                if num > CONVERGENCE:
-                    flag = False
-            
-            return flag
-
-        # If all delta_regression values are less than the CONVERGENCE threshold, we stop iterating
-        if all_less(delta_regression):
-            break
 
         # Otherwise, we take action of whichever change lead to largest change in the regression sum
         index_delta_regression = delta_regression.index(max(delta_regression))
@@ -552,17 +563,17 @@ def get_mpg_multi_linear_reg(csv_file):
         
         iteration += 1 # End of while loop
     print(f"Final Thetas = {thetas}")
-    print(f"Theta0 = {round(thetas[0], 2)}")
-    print(f"Theta1 = {round(thetas[1], 2)}")
-    print(f"Theta2 = {round(thetas[2], 2)}")
-    print(f"Theta3 = {round(thetas[3], 2)}")
-    print(f"Theta4 = {round(thetas[4], 2)}")
-    print(f"Theta5 = {round(thetas[5], 2)}")
-    print(f"Theta6 = {round(thetas[6], 2)}")
-    print(f"Theta7 = {round(thetas[7], 2)}")
-    print(f"Theta8 = {round(thetas[8], 2)}")
-    print(f"Theta9 = {round(thetas[9], 2)}")
-    print(f"Theta10 = {round(thetas[10], 2)}")
+    print(f"Theta0 = {round(thetas[0], 5)}")
+    print(f"Theta1 = {round(thetas[1], 5)}")
+    print(f"Theta2 = {round(thetas[2], 5)}")
+    print(f"Theta3 = {round(thetas[3], 5)}")
+    print(f"Theta4 = {round(thetas[4], 5)}")
+    print(f"Theta5 = {round(thetas[5], 5)}")
+    print(f"Theta6 = {round(thetas[6], 5)}")
+    print(f"Theta7 = {round(thetas[7], 5)}")
+    print(f"Theta8 = {round(thetas[8], 5)}")
+    print(f"Theta9 = {round(thetas[9], 5)}")
+    print(f"Theta10 = {round(thetas[10], 5)}")
 
 # Reports the theta values for cancer data
 def get_cancer_thetas(csv_file = 'cancer.csv'):
@@ -665,8 +676,8 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
         
         iteration += 1 # End of while loop
     print(f"While loop ended at iteration {iteration}")
-    print(f"Theta0 = {round(thetas[0], 2)}")
-    print(f"Theta1 = {round(thetas[1], 2)}")
+    print(f"Theta0 = {round(thetas[0], 4)}")
+    print(f"Theta1 = {round(thetas[1], 4)}")
 
     print(f"The Thetas {thetas}")
     print("\n")
