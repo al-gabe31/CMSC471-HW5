@@ -660,6 +660,107 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
     print(f"Final Thetas = {thetas}")
     print(f"Theta0 = {round(thetas[0], 5)}")
     print(f"Theta1 = {round(thetas[1], 5)}")
+    print("")
+
+    # Print the confusion matrix and accuracy here
+    # Correct Predictions
+    oc_pc = 0 # Observed Cancer / Predicted Cancer
+    onc_pnc = 0 # Observed No Cancer / Predicted No Cancer
+
+    # Incorrect Predictions
+    oc_pnc = 0 # Observed Cancer / Predicted No Cancer
+    onc_pc = 0 # Observed No Cancer / Predicted Cancer
+
+    num_entries = 0
+    num_correct = 0
+
+    num_pc = 0 # Number of times it Predicted Cancer
+    num_pc_correct = 0 # Number of times it correctly Predicted Cancer
+
+    num_pnc = 0 # Number of times it Predicted No Cancer
+    num_pnc_correct = 0 # Number of times it correctly Predicted No Cancer
+
+    # Gets prediction from a logistic probability curve
+    def collapse(x):
+        result = thetas[0]
+
+        for i in range(1, len(thetas)):
+            result += thetas[i] * x
+        
+        result = 1 / (1 + pow(math.e, -1 * result))
+
+
+        return result
+    
+    # Classify Individuals Here
+    print("Classifying Individuals:")
+
+    for i in range(len(smoking)):
+        line = "Patient " + str(i + 1) + ": Smoking = " + str(smoking[i]) + " --> " + str(p := round(collapse(smoking[i]) * 100, 2)) + "% has cancer --> "
+
+        if p < 50: # Decides it (probably) doesn't have cancer
+            line += "Doesn't have cancer"
+        else:
+            line += "Has cancer"
+        
+        print(line)
+    
+    print("\n")
+    
+    for i in range(len(lung_cancer)):
+        predicted = smoking[i]
+        observed = lung_cancer[i]
+        
+        # Needed to get confusion matrix
+        if observed == 1 and predicted == 1: # Observed Cancer / Predicted Cancer
+            oc_pc += 1
+        elif observed == 0 and predicted == 0: # Observed No Cancer / Predicted No Cancer
+            onc_pnc += 1
+        elif observed == 1 and predicted == 0: # Observed Cancer / Predicted No Cancer
+            oc_pnc += 1
+        elif observed == 0 and predicted == 1: # Observed No Cancer / Predicted Cancer
+            onc_pc += 1
+        
+        # Needed to calculate overall accuracy
+        if predicted == observed:
+            num_correct += 1
+
+        # Needed to calculate category-wise percentages
+        # Predicted Cancer
+        if predicted == 1: # Predicted Cancer
+            num_pc += 1
+            if observed == 1: # Observed Cancer
+                num_pc_correct += 1
+        elif predicted == 0: # Predicted No Cancer
+            num_pnc += 1
+            if observed == 0: # Observed No Cancer
+                num_pnc_correct += 1
+
+        num_entries += 1
+    
+    # Print Confusion Matrix Here
+    print(f"{' ' * 30}Predicted")
+    print(f"{' ' * 25}Cancer{' ' * 5}No Cancer")
+
+    first = "Observed" + (' ' * 5) + "Cancer" + (' ' * 6) + str(oc_pc)
+    second = (' ' * 13) + "No Cancer" + (' ' * 3) + str(onc_pc)
+
+    while len(first) < 36:
+        first += ' '
+    while len(second) < 36:
+        second += ' '
+    
+    first += str(oc_pnc)
+    second += str(onc_pnc)
+    
+    print(first)
+    print(second)
+    print("")
+    
+    # Print Accuracies Here
+    print(f"Overall Accuracy = {round((num_correct / num_entries) * 100, 2)}%")
+    print(f"Correctly Predicted Cancer {round((num_pc_correct / num_pc) * 100, 2)}% of the time")
+    print(f"Correctly No Predicted Cancer {round((num_pnc_correct / num_pnc) * 100, 2)}% of the time")
 
 # Runs everything for question 4
 def question4(csv_file = 'emails.csv'):
