@@ -159,6 +159,8 @@ def report_scaled_mean_and_variance(scaled_values, headers, num_rows = 5):
     }
 
     # We then print the table
+    print("Scaled Means and Variances")
+    
     # First, print the header
     header_str = " " * 7
     for i in range(len(headers)):
@@ -311,7 +313,7 @@ def make_cars_plot(csv_file):
         return regression_sum / (num_lines - 0)
     
     # Keep updating thetas until the change in all delta_regression is negligable
-    SAFETY = 500
+    SAFETY = 10000
     iteration = 0
     while iteration < SAFETY:
         base_regression = get_mpg_scaled_wt_regression_sum()
@@ -342,7 +344,6 @@ def make_cars_plot(csv_file):
         thetas[index_delta_regression] = new_thetas[index_delta_regression]
 
         iteration += 1 # End of while loop
-    print(f"Final Thetas = {thetas}")
     print(f"Theta0 = {thetas[0]}")
     print(f"Theta1 = {thetas[1]}")
     
@@ -562,7 +563,6 @@ def get_mpg_multi_linear_reg(csv_file):
         thetas[index_delta_regression] = new_thetas[index_delta_regression]
         
         iteration += 1 # End of while loop
-    print(f"Final Thetas = {thetas}")
     print(f"Theta0 = {round(thetas[0], 5)}")
     print(f"Theta1 = {round(thetas[1], 5)}")
     print(f"Theta2 = {round(thetas[2], 5)}")
@@ -629,7 +629,6 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
 
     # Keep updating theta values until changes to all leads to less of a change in regression sum than the convergence threshold
     SAFETY = 50000
-    print(f"SAFETY = {SAFETY}")
     iteration = 0
     while iteration < SAFETY:
         base_regression = get_regression_sum()
@@ -657,7 +656,6 @@ def get_cancer_thetas(csv_file = 'cancer.csv'):
         thetas[index_delta_regression] = new_thetas[index_delta_regression]
         
         iteration += 1 # End of while loop
-    print(f"Final Thetas = {thetas}")
     print(f"Theta0 = {round(thetas[0], 5)}")
     print(f"Theta1 = {round(thetas[1], 5)}")
     print("")
@@ -807,6 +805,192 @@ def question4(csv_file = 'emails.csv'):
     plt.scatter(spam_suspicious_word_count, spam_subject_length)
     plt.scatter(not_spam_suspicious_word_count, not_spam_subject_length)
     plt.legend(['Spam', 'Not Spam'], loc='best')
+
+    # Resume with learning the logistic regression
+    thetas = [RANDOM_INITIALIZATION for i in range(3)]
+
+    def spam_prediction(x, theta_values = thetas):
+        result = theta_values[0]
+
+        for i in range(1, len(theta_values)):
+            result += theta_values[i] * x[i]
+        
+        return 1 / (1 + pow(math.e, -1 * result)) # We need the logistic regression form instead
+    
+    def get_regression_sum(theta_values = thetas):
+        regression_sum = 0
+
+        # Adds up the regression for each row
+        for i in range(len(spam_flag)):
+            regression_sum += pow(spam_prediction([spam_flag[i], subject_length[i], suspicious_word_count[i]], theta_values) - spam_flag[i], 2)
+        
+        return regression_sum / (2 * num_lines)
+    
+    thetas = [-35.68618463186144, 0.23549743621369503, 3.892160533123672]
+    
+    def cost_derivative(theta_values = thetas, index = 0):
+        regression_sum = 0
+
+        # Adds up the regression for each row
+        for i in range(len(spam_flag)):
+            if index == 0:
+                regression_sum += abs(spam_prediction([spam_flag[i], subject_length[i], suspicious_word_count[i]], theta_values) - spam_flag[i])
+            else:
+                # 1 --> subject_length
+                # 2 --> suspicious_word_count
+                sample = []
+
+                if index == 1:
+                    sample = subject_length
+                elif index == 2:
+                    sample = suspicious_word_count
+                
+                regression_sum += abs((spam_prediction([spam_flag[i], subject_length[i], suspicious_word_count[i]], theta_values) - spam_flag[i]) * sample[i])
+        
+        return regression_sum / num_lines
+    
+    # Keep updating thetas until the change in all delta_regression is negligable
+    SAFETY = 500000
+    iteration = 0
+    while iteration < SAFETY:
+        base_regresssion = get_regression_sum()
+
+        new_thetas = []
+
+        if base_regresssion - get_regression_sum([thetas[0] - LEARNING_RATE * cost_derivative(), thetas[1], thetas[2]]) > base_regresssion - get_regression_sum([thetas[0] + LEARNING_RATE * cost_derivative(), thetas[1], thetas[2]]):
+            new_thetas.append(thetas[0] - LEARNING_RATE * cost_derivative())
+        else:
+            new_thetas.append(thetas[0] + LEARNING_RATE * cost_derivative())
+        if base_regresssion - get_regression_sum([thetas[0], thetas[1] - LEARNING_RATE * cost_derivative(index=1), thetas[2]]) > base_regresssion - get_regression_sum([thetas[0], thetas[1] + LEARNING_RATE * cost_derivative(index=1), thetas[2]]):
+            new_thetas.append(thetas[1] - LEARNING_RATE * cost_derivative(index=1))
+        else:
+            new_thetas.append(thetas[1] + LEARNING_RATE * cost_derivative(index=1))
+        if base_regresssion - get_regression_sum([thetas[0], thetas[1], thetas[2] - LEARNING_RATE * cost_derivative(index=2)]) > base_regresssion - get_regression_sum([thetas[0], thetas[1], thetas[2] + LEARNING_RATE * cost_derivative(index=2)]):
+            new_thetas.append(thetas[2] - LEARNING_RATE * cost_derivative(index=2))
+        else:
+            new_thetas.append(thetas[2] + LEARNING_RATE * cost_derivative(index=2))
+        
+        delta_regression = []
+        # Populates delta_regression
+        for i in range(len(new_thetas)):
+            stuff = thetas.copy()
+            stuff[i] = new_thetas[i]
+            delta_regression.append(1 * (base_regresssion - get_regression_sum(stuff)))
+        
+        # Otherwise, we take action of whichever chagne lead to largest change in the regression sum
+        index_delta_regression = delta_regression.index(max(delta_regression))
+        thetas[index_delta_regression] = new_thetas[index_delta_regression]
+
+        iteration += 1 # End of while loop
+    print(f"Theta0 = {round(thetas[0], 5)}")
+    print(f"Theta1 = {round(thetas[1], 5)}")
+    print(f"Theta2 = {round(thetas[2], 5)}")
+    print("")
+
+    # Print the confusion matrix and accuracy here
+    # Correct Predictions
+    os_ps = 0 # Observed Spam / Predicted Spam
+    ons_pns = 0 # Observed Not Spam / Predicted Not Spam
+
+    # Incorrect Predictions
+    os_pns = 0 # Observed Spam / Predicted Not Spam
+    ons_ps = 0 # Observed Not Spam / Predicted Not Spam
+
+    num_entries = 0
+    num_correct = 0
+
+    num_ps = 0 # Number of times it Predicted Spam
+    num_ps_correct = 0 # Number of times it correclty Predicted Spam
+
+    num_pns = 0 # Number of times it Predicted Not Spam
+    num_pns_correct = 0 # Number of times it correctly Predicted Not Spam
+
+    # Gets prediction from a logistic probability curve
+    def collapse(x):
+        result = thetas[0]
+
+        for i in range(1, len(thetas)):
+            result += thetas[i] * x[i]
+        
+        result = 1 / (1 + pow(math.e, -1 * result))
+
+        return result
+
+    # Classify Individuals Here
+    print("Classifying Individuals:")
+
+    for i in range(len(spam_flag)):
+        line = "Email " + str(i + 1) + ": Sub_Len = " + str(subject_length[i]) + " | Sus_Count = " + str(suspicious_word_count[i]) + " --> " + str(p := round(collapse([spam_flag[i], subject_length[i], suspicious_word_count[i]]) * 100, 2)) + "% is spam --> "
+
+        if p < 50: # Decides it (probably) isn't spam
+            line += "NO, it's not spam"
+        else:
+            line += "YES, it's spam"
+        
+        print(line)
+    
+    print("\n")
+
+    for i in range(len(spam_flag)):
+        predicted = 0
+
+        if round(collapse([spam_flag[i], subject_length[i], suspicious_word_count[i]]) * 100, 2) >= 50:
+            predicted = 1
+        
+        observed = spam_flag[i]
+
+        # Needed to get confusion matrix
+        if observed == 1 and predicted == 1: # Observed Spam / Predicted Spam
+            os_ps += 1
+        elif observed == 0 and predicted == 0: # Observed No Spam / Predicted No Spam
+            ons_pns += 1
+        elif observed == 1 and predicted == 0: # Observed Spam / Predicted No Spam
+            os_pns += 1
+        elif observed == 0 and predicted == 1: # Observed No Spam / Predicted Spam
+            ons_ps += 1
+        
+        # Needed to calculate overall accuracy
+        if predicted == observed:
+            num_correct += 1
+
+        # Needed to calculate category-wise percentages
+        # Predicted Spam
+        if predicted == 1: # Predicted Spam
+            num_ps += 1
+            if observed == 1: # Observed Spam
+                num_ps_correct += 1
+        elif predicted == 0: # Predicted No Spam
+            num_pns += 1
+            if observed == 0: # Observed No Spam
+                num_pns_correct += 1
+
+        num_entries += 1
+    
+    # Print Confusion Matrix Here
+    print(f"{' ' * 30}Predicted")
+    print(f"{' ' * 25}Spam{' ' * 5}No Spam")
+
+    first = "Observed" + (' ' * 5) + "Spam" + (' ' * 8) + str(os_ps)
+    second = (' ' * 13) + "No Spam" + (' ' * 5) + str(ons_ps)
+
+    while len(first) < 34:
+        first += ' '
+    while len(second) < 34:
+        second += ' '
+    
+    first += str(os_pns)
+    second += str(ons_pns)
+    
+    print(first)
+    print(second)
+    print("")
+    
+    # Print Accuracies Here
+    print(f"Overall Accuracy = {round((num_correct / num_entries) * 100, 2)}%")
+    print(f"Correctly Predicted Spam {round((num_ps_correct / num_ps) * 100, 2)}% of the time")
+    print(f"Correctly No Predicted Spam {round((num_pns_correct / num_pns) * 100, 2)}% of the time")
+
+    # End of function
 
 
 # END OF FILE
